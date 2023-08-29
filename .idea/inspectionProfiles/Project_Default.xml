@@ -1,0 +1,102 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="82">
+            <item index="0" class="java.lang.String" itemvalue="mysqlclient" />
+            <item index="1" class="java.lang.String" itemvalue="gensim" />
+            <item index="2" class="java.lang.String" itemvalue="Automat" />
+            <item index="3" class="java.lang.String" itemvalue="greenlet" />
+            <item index="4" class="java.lang.String" itemvalue="joblib" />
+            <item index="5" class="java.lang.String" itemvalue="tls-client" />
+            <item index="6" class="java.lang.String" itemvalue="nltk" />
+            <item index="7" class="java.lang.String" itemvalue="python-dateutil" />
+            <item index="8" class="java.lang.String" itemvalue="h11" />
+            <item index="9" class="java.lang.String" itemvalue="html2text" />
+            <item index="10" class="java.lang.String" itemvalue="MarkupSafe" />
+            <item index="11" class="java.lang.String" itemvalue="premailer" />
+            <item index="12" class="java.lang.String" itemvalue="filelock" />
+            <item index="13" class="java.lang.String" itemvalue="helper" />
+            <item index="14" class="java.lang.String" itemvalue="certifi" />
+            <item index="15" class="java.lang.String" itemvalue="lxml" />
+            <item index="16" class="java.lang.String" itemvalue="soupsieve" />
+            <item index="17" class="java.lang.String" itemvalue="Markdown" />
+            <item index="18" class="java.lang.String" itemvalue="beautifulsoup4" />
+            <item index="19" class="java.lang.String" itemvalue="Flask-Caching" />
+            <item index="20" class="java.lang.String" itemvalue="hyperlink" />
+            <item index="21" class="java.lang.String" itemvalue="service-identity" />
+            <item index="22" class="java.lang.String" itemvalue="dnspython" />
+            <item index="23" class="java.lang.String" itemvalue="Scrapy" />
+            <item index="24" class="java.lang.String" itemvalue="Flask-WTF" />
+            <item index="25" class="java.lang.String" itemvalue="cryptography" />
+            <item index="26" class="java.lang.String" itemvalue="click" />
+            <item index="27" class="java.lang.String" itemvalue="Flask-SQLAlchemy" />
+            <item index="28" class="java.lang.String" itemvalue="attrs" />
+            <item index="29" class="java.lang.String" itemvalue="requests-file" />
+            <item index="30" class="java.lang.String" itemvalue="charset-normalizer" />
+            <item index="31" class="java.lang.String" itemvalue="Mako" />
+            <item index="32" class="java.lang.String" itemvalue="itemadapter" />
+            <item index="33" class="java.lang.String" itemvalue="async-generator" />
+            <item index="34" class="java.lang.String" itemvalue="alembic" />
+            <item index="35" class="java.lang.String" itemvalue="queuelib" />
+            <item index="36" class="java.lang.String" itemvalue="SQLAlchemy" />
+            <item index="37" class="java.lang.String" itemvalue="cffi" />
+            <item index="38" class="java.lang.String" itemvalue="itemloaders" />
+            <item index="39" class="java.lang.String" itemvalue="numpy" />
+            <item index="40" class="java.lang.String" itemvalue="requests" />
+            <item index="41" class="java.lang.String" itemvalue="importlib-metadata" />
+            <item index="42" class="java.lang.String" itemvalue="Jinja2" />
+            <item index="43" class="java.lang.String" itemvalue="sniffio" />
+            <item index="44" class="java.lang.String" itemvalue="emails" />
+            <item index="45" class="java.lang.String" itemvalue="exceptiongroup" />
+            <item index="46" class="java.lang.String" itemvalue="selenium" />
+            <item index="47" class="java.lang.String" itemvalue="pyOpenSSL" />
+            <item index="48" class="java.lang.String" itemvalue="revChatGPT" />
+            <item index="49" class="java.lang.String" itemvalue="PyWavelets" />
+            <item index="50" class="java.lang.String" itemvalue="2captcha-python" />
+            <item index="51" class="java.lang.String" itemvalue="tldextract" />
+            <item index="52" class="java.lang.String" itemvalue="itsdangerous" />
+            <item index="53" class="java.lang.String" itemvalue="imbox" />
+            <item index="54" class="java.lang.String" itemvalue="outcome" />
+            <item index="55" class="java.lang.String" itemvalue="Flask" />
+            <item index="56" class="java.lang.String" itemvalue="blinker" />
+            <item index="57" class="java.lang.String" itemvalue="scipy" />
+            <item index="58" class="java.lang.String" itemvalue="IMAPClient" />
+            <item index="59" class="java.lang.String" itemvalue="Flask-Cors" />
+            <item index="60" class="java.lang.String" itemvalue="cachelib" />
+            <item index="61" class="java.lang.String" itemvalue="packaging" />
+            <item index="62" class="java.lang.String" itemvalue="pipreqs" />
+            <item index="63" class="java.lang.String" itemvalue="cssutils" />
+            <item index="64" class="java.lang.String" itemvalue="Protego" />
+            <item index="65" class="java.lang.String" itemvalue="sortedcontainers" />
+            <item index="66" class="java.lang.String" itemvalue="chardet" />
+            <item index="67" class="java.lang.String" itemvalue="jmespath" />
+            <item index="68" class="java.lang.String" itemvalue="importlib-resources" />
+            <item index="69" class="java.lang.String" itemvalue="colorama" />
+            <item index="70" class="java.lang.String" itemvalue="Flask-Mail" />
+            <item index="71" class="java.lang.String" itemvalue="Flask-Migrate" />
+            <item index="72" class="java.lang.String" itemvalue="cachetools" />
+            <item index="73" class="java.lang.String" itemvalue="pyquery" />
+            <item index="74" class="java.lang.String" itemvalue="html2markdown" />
+            <item index="75" class="java.lang.String" itemvalue="ImageHash" />
+            <item index="76" class="java.lang.String" itemvalue="openpyxl" />
+            <item index="77" class="java.lang.String" itemvalue="pandas" />
+            <item index="78" class="java.lang.String" itemvalue="mysql_connector_repackaged" />
+            <item index="79" class="java.lang.String" itemvalue="Requests" />
+            <item index="80" class="java.lang.String" itemvalue="APScheduler" />
+            <item index="81" class="java.lang.String" itemvalue="alibabacloud_dataworks_public20200518" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="gitlab.*" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
