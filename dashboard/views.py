@@ -5,6 +5,9 @@ import random
 from django.http import JsonResponse
 from django.shortcuts import render
 from devops import k8s
+from utils.LogHandler import log
+
+
 # Create your views here.
 def index(request):
     return render(request, 'index.html')
@@ -12,11 +15,11 @@ def index(request):
 
 def login(request):
     if request.method == "GET":
-        return  render(request, 'login.html')
+        return render(request, 'login.html')
     elif request.method == "POST":
         token = request.POST.get("token", None)
         if token:
-            print(token)
+            log.info("token认证 %s" % token)
             if k8s.auth_check('token', token):
                 code = 0
                 msg = "认证成功"
@@ -41,4 +44,5 @@ def login(request):
                 code = 1
                 msg = "认证文件无效！"
         res = {'code': code, 'msg': msg}
+        log.info("认证结果 %s" % res)
         return JsonResponse(res)

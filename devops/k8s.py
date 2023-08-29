@@ -4,9 +4,11 @@
 # @Email   : 1794748404@qq.com
 # @File    : k8s.py
 # @Software: PyCharm
-#登录认证检查
+# 登录认证检查
 from kubernetes import client, config
 import os
+
+
 def auth_check(auth_type, str):
     if auth_type == "token":
         token = str

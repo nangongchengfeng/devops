@@ -155,7 +155,7 @@ def svc_update():
             selector={'a': '1', 'b': '2'},
             ports=[client.V1ServicePort(
                 port=80,
-                target_port=80
+                target_port=8080
             )],
             type="NodePort"
         )

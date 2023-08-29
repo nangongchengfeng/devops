@@ -23,4 +23,4 @@ def input_package():
 
 
 if __name__ == '__main__':
-    export_package()
+    input_package()
