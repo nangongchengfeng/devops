@@ -5,6 +5,7 @@
 # @File    : k8s.py
 # @Software: PyCharm
 # 登录认证检查
+from django.shortcuts import redirect
 from kubernetes import client, config
 import os
 
@@ -41,3 +42,19 @@ def auth_check(auth_type, str):
             return True
         except Exception:
             return False
+
+
+
+def self_login_required(func):
+    """
+    自定义登录认证装饰器
+    :param func: 传入视图函数
+    :return: 返回视图函数
+    """
+    def inner(request, *args, **kwargs):
+        is_login=request.session.get('is_login', False)
+        if is_login:
+            return func(request, *args, **kwargs)
+        else:
+            return redirect('/login')
+    return inner

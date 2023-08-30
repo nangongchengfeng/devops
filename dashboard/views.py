@@ -8,7 +8,8 @@ from devops import k8s
 from utils.LogHandler import log
 
 
-# Create your views here.
+
+@k8s.self_login_required # 从k8s.py中导入自定义登录认证装饰器
 def index(request):
     """
     首页
