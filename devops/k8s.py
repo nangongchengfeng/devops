@@ -10,6 +10,12 @@ import os
 
 
 def auth_check(auth_type, str):
+    """
+    登录认证检查
+    :param auth_type: 传入认证类型
+    :param str: 传入认证字符串
+    :return: 返回认证结果
+    """
     if auth_type == "token":
         token = str
         configuration = client.Configuration()
