@@ -136,3 +136,6 @@ def namespace_api(request):
     # return None
 
 
+def namespace(request):
+
+    return render(request, 'k8s/namespace.html')
