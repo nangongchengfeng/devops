@@ -11,7 +11,7 @@
         }
 
         .namespace select, .namespace option {
-            width: 150px;
+            width: 160px;
             height: 40px;
             font-size: 22px;
             color: #2F4056;
@@ -54,7 +54,7 @@
                 <li class="layui-nav-item {% block nav-item-1 %}{% endblock %}">
                     <a href="javascript:;">Kubernetes</a>
                     <dl class="layui-nav-child">
-                        <dd><a href="#" class="{% block nav-this-1-1 %}{% endblock %}">Nodes</a></dd>
+                        <dd><a href="{% url 'node' %}" class="{% block nav-this-1-1 %}{% endblock %}">Nodes</a></dd>
                         <dd><a href="{% url 'namespace' %}" class="{% block nav-this-1-2 %}{% endblock %}">Namespaces</a></dd>
                         <dd><a href="#" class="{% block nav-this-1-3 %}{% endblock %}">PersistentVolumes</a></dd>
                     </dl>
