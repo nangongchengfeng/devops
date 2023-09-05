@@ -3,13 +3,13 @@ import os
 import random
 
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from kubernetes import client, config
 from devops import k8s
 from utils.LogHandler import log
 
 
-
-@k8s.self_login_required # 从k8s.py中导入自定义登录认证装饰器
+@k8s.self_login_required  # 从k8s.py中导入自定义登录认证装饰器
 def index(request):
     """
     首页
@@ -76,3 +76,63 @@ def login(request):
         log.info("认证结果 %s" % res)
         # 返回认证结果
         return JsonResponse(res)
+
+
+def logout(request):
+    """
+    注销用户
+    :param request:
+    :return:
+    """
+    log.info("注销用户")
+    request.session.clear()
+    return redirect(login)
+
+
+def namespace_api(request):
+    """
+    获取namespace列表
+    :param request:
+    :return:
+    """
+    if request.method == 'GET':
+
+        # 获取认证类型
+        auth_type = request.session.get('auth_type', None)
+        # 获取认证信息
+        token = request.session.get('token', None)
+        # 调用k8s.load_auth_config()方法
+        k8s.load_auth_config(auth_type, token)
+
+        # 获取namespace列表 对象实例化
+        core_api = client.CoreV1Api()
+        data = []
+        try:
+            # 遍历namespace列表
+            for ns in core_api.list_namespace().items:
+                name = ns.metadata.name
+                labels = ns.metadata.labels
+                creation_time = ns.metadata.creation_timestamp
+                print(name, labels, creation_time)
+                namespace = {'name': name, 'labels': labels, 'creation_time': creation_time}
+                data.append(namespace)
+            code = 0
+            msg = "获取namespace列表成功"
+            count = len(data)
+            res = {'code': code, 'msg': msg, 'count': count, 'data': data}
+        except Exception as e:
+            status = getattr(e, 'status', None)
+            if status == 403:
+                msg = "没有访问权限"
+            else:
+                msg = "获取namespace列表失败"
+            code = 1
+            res = {'code': code, 'msg': msg}
+            # 返回失败信息
+
+        # 返回namespace列表
+        log.info("获取namespace列表 %s" % res)
+        return JsonResponse(res)
+    # return None
+
+
