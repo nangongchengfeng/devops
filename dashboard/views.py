@@ -2,7 +2,7 @@ import hashlib
 import os
 import random
 
-from django.http import JsonResponse
+from django.http import JsonResponse, QueryDict
 from django.shortcuts import render, redirect
 from kubernetes import client, config
 from devops import k8s
@@ -91,7 +91,7 @@ def logout(request):
 
 def namespace_api(request):
     """
-    获取namespace列表
+     # 命名空间选择和命名空间表格使用
     :param request:
     :return:
     """
@@ -112,9 +112,9 @@ def namespace_api(request):
             for ns in core_api.list_namespace().items:
                 name = ns.metadata.name
                 labels = ns.metadata.labels
-                creation_time = ns.metadata.creation_timestamp
-                print(name, labels, creation_time)
-                namespace = {'name': name, 'labels': labels, 'creation_time': creation_time}
+                create_time = ns.metadata.creation_timestamp
+                print(name, labels, create_time)
+                namespace = {'name': name, 'labels': labels, 'create_time': create_time}
                 data.append(namespace)
             code = 0
             msg = "获取namespace列表成功"
@@ -129,13 +129,44 @@ def namespace_api(request):
             code = 1
             res = {'code': code, 'msg': msg}
             # 返回失败信息
+        count = len(data)
+        # 分页
+        if request.GET.get('page'):
+            page = int(request.GET.get('page', 1))
+            limit = int(request.GET.get('limit'))
+            start = (page - 1) * limit
+            end = page * limit
+            data = data[start:end]
 
+        res = {'code': code, 'msg': msg, 'count': count, 'data': data}
+        return JsonResponse(res)
         # 返回namespace列表
         log.info("获取namespace列表 %s" % res)
+
+    elif request.method == "DELETE":
+        """
+        删除namespace
+        """
+        request_data = QueryDict(request.body)
+        name = request_data.get("name")
+        auth_type = request.session.get("auth_type")
+        token = request.session.get("token")
+        k8s.load_auth_config(auth_type, token)
+        core_api = client.CoreV1Api()
+        try:
+            core_api.delete_namespace(name)
+            code = 0
+            msg = "删除成功."
+        except Exception as e:
+            code = 1
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "没有删除权限"
+            else:
+                msg = "删除失败！"
+        res = {'code': code, 'msg': msg}
         return JsonResponse(res)
-    # return None
 
 
 def namespace(request):
-
     return render(request, 'k8s/namespace.html')
