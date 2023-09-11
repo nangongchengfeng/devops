@@ -8,10 +8,14 @@
 
             <div class="layui-row">
                 <div class="layui-col-md12">
+                    <!-- 创建命名空间 -->
                     <button class="layui-btn" style="float: left">创建</button>
+                    <!-- 搜索框 -->
                     <input type="text" name="name" class="layui-input"
                            style="width: 150px;float: left;margin-left: 20px">
+                    <!-- 搜索按钮 -->
                     <button class="layui-btn" style="float: left" id="searchBtn">搜索</button>
+
                 </div>
                 <div class="layui-col-md12">
                     <table class="layui-hide" id="test" lay-filter="test"></table>
@@ -49,6 +53,7 @@
                     , {field: 'create_time', title: '创建时间'}
                     , {fixed: 'right', title: '操作', toolbar: '#barDemo', width: 150}
                 ]]
+                // 添加分页
                 , page: true
                 , id: 'nstb'
             });
@@ -70,15 +75,19 @@
             //监听行工具事件
             table.on('tool(test)', function (obj) {
                 var data = obj.data;
-                //console.log(obj)
+                console.log(obj)
                 if (obj.event === 'del') {
-                    layer.confirm('真的要删除' + data["name"] + "这个命名空间吗？", function (index) {
+                    layer.confirm('真的要删除 ' + data["name"] + " 这个命名空间吗？", function (index) {
+                        //获取csrf_token
                         csrf_token = $('[name="csrfmiddlewaretoken"]').val();
+                        // 发送ajax请求，删除namespace的数据
                         $.ajax({
                             url: '{% url 'namespace_api' %}',
                             type: "DELETE",
                             data: data,
+                            // 请求头中包含csrf_token
                             headers: {"X-CSRFToken": csrf_token},
+                            // 请求成功执行的回调函数
                             success: function (res) {
                                 if (res.code == 0) {
                                     layer.msg(res.msg, {icon: 6});
@@ -87,12 +96,14 @@
                                     layer.msg(res.msg, {icon: 5})
                                 }
                             },
+                            // 请求失败执行的回调函数
                             error: function () {
                                 layer.msg("服务器接口异常", {icon: 5})
                             }
                         })
 
                     });
+                    // 判断是否是yaml按钮
                 } else if (obj.event === 'yaml') {
 
                 }
@@ -101,6 +112,8 @@
 
             $("#searchBtn").click(function () {
                 var search_key = $("input[name='name']").val();
+              //  console.log(search_key)
+                // 数据表格重载
                 table.reload('nstb', {
                     where: { //设定异步数据接口的额外参数，任意设
                         search_key: search_key

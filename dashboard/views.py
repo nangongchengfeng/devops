@@ -95,6 +95,7 @@ def namespace_api(request):
     :param request:
     :return:
     """
+
     if request.method == 'GET':
 
         # 获取认证类型
@@ -106,6 +107,7 @@ def namespace_api(request):
 
         # 获取namespace列表 对象实例化
         core_api = client.CoreV1Api()
+        search_key = request.GET.get('search_key', None)
         data = []
         try:
             # 遍历namespace列表
@@ -115,7 +117,11 @@ def namespace_api(request):
                 create_time = ns.metadata.creation_timestamp
                 print(name, labels, create_time)
                 namespace = {'name': name, 'labels': labels, 'create_time': create_time}
-                data.append(namespace)
+                if search_key:
+                    if search_key in name:
+                        data.append(namespace)
+                else:
+                    data.append(namespace)
             code = 0
             msg = "获取namespace列表成功"
             count = len(data)
@@ -128,26 +134,38 @@ def namespace_api(request):
                 msg = "获取namespace列表失败"
             code = 1
             res = {'code': code, 'msg': msg}
+            log.error("获取namespace列表 %s" % res)
             # 返回失败信息
         count = len(data)
         # 分页
+        #  "GET /namespace_api/?page=2&limit=10
+        # 参数page表示当前页数，参数limit表示每页显示的条数
         if request.GET.get('page'):
+            """
+            page number 当前页数
+            limit number 每页显示条数
+            """
             page = int(request.GET.get('page', 1))
             limit = int(request.GET.get('limit'))
+            # 计算每页的起始位置和结束位置
             start = (page - 1) * limit
+            # 计算每页的结束位置
             end = page * limit
+            # 切片
             data = data[start:end]
 
         res = {'code': code, 'msg': msg, 'count': count, 'data': data}
-        return JsonResponse(res)
         # 返回namespace列表
         log.info("获取namespace列表 %s" % res)
+        return JsonResponse(res)
+
 
     elif request.method == "DELETE":
         """
         删除namespace
         """
         request_data = QueryDict(request.body)
+        log.info("删除namespace %s" % request_data)
         name = request_data.get("name")
         auth_type = request.session.get("auth_type")
         token = request.session.get("token")
@@ -157,6 +175,7 @@ def namespace_api(request):
             core_api.delete_namespace(name)
             code = 0
             msg = "删除成功."
+            log.info("删除namespace %s 成功" % name)
         except Exception as e:
             code = 1
             status = getattr(e, "status")
@@ -164,6 +183,7 @@ def namespace_api(request):
                 msg = "没有删除权限"
             else:
                 msg = "删除失败！"
+            log.error("删除namespace %s 失败" % name)
         res = {'code': code, 'msg': msg}
         return JsonResponse(res)
 
