@@ -75,7 +75,7 @@
                     </dl>
                 </li>
                 <!-- 模块四 -->
-                <li class="layui-nav-item">
+                <li class="layui-nav-item {% block nav-item-3 %}{% endblock %}">
                     <a href="javascript:;">负载均衡</a>
                     <dl class="layui-nav-child">
                         <dd><a href="{% url 'service' %}" class="{% block nav-this-3-1 %}{% endblock %}">Services</a>
@@ -85,7 +85,7 @@
                     </dl>
                 </li>
                 <!-- 模块五 -->
-                <li class="layui-nav-item">
+                <li class="layui-nav-item {% block nav-item-4 %}{% endblock %}">
                     <a href="javascript:;">存储与配置</a>
                     <dl class="layui-nav-child">
                         <dd><a href="{% url 'pvc' %}" class="{% block nav-this-4-1 %}{% endblock %}">PersistentVolumeClaims</a>
