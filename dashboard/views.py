@@ -114,7 +114,7 @@ def namespace_api(request):
             for ns in core_api.list_namespace().items:
                 name = ns.metadata.name
                 labels = ns.metadata.labels
-                create_time = ns.metadata.creation_timestamp
+                create_time = k8s.dt_format(ns.metadata.creation_timestamp)
                 print(name, labels, create_time)
                 namespace = {'name': name, 'labels': labels, 'create_time': create_time}
                 if search_key:

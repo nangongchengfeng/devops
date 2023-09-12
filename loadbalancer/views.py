@@ -43,7 +43,7 @@ def service_api(request):
                     ports.append(port)
 
                 selector = svc.spec.selector
-                create_time = svc.metadata.creation_timestamp
+                create_time = k8s.dt_format(svc.metadata.creation_timestamp)
 
                 # 确认是否关联Pod
                 endpoint = ""
@@ -143,7 +143,7 @@ def ingress_api(request):
                         secret_name = tls.secret_name
                         https_hosts = {'host': host, 'secret_name': secret_name}
 
-                create_time = ing.metadata.creation_timestamp
+                create_time = k8s.dt_format(ing.metadata.creation_timestamp)
 
                 ing = {"name": name, "namespace": namespace, "labels": labels, "http_hosts": http_hosts,
                        "https_hosts": https_hosts, "service": service, "create_time": create_time}

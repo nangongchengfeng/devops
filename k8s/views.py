@@ -37,7 +37,7 @@ def node_api(request):
                 # 标签
                 labels = node.metadata.labels
                 # 创建时间
-                create_time = node.metadata.creation_timestamp
+                create_time = k8s.dt_format(node.metadata.creation_timestamp)
                 # 准备就绪
                 status = node.status.conditions[-1].status
                 # 节点调度
@@ -130,7 +130,7 @@ def pv_api(request):
                 else:
                     pvc = "未绑定"
                 storage_class = pv.spec.storage_class_name
-                create_time = pv.metadata.creation_timestamp
+                create_time = k8s.dt_format(pv.metadata.creation_timestamp)
                 pv = {"name": name, "capacity": capacity, "access_modes":access_modes,
                              "reclaim_policy":reclaim_policy , "status":status, "pvc":pvc,
                             "storage_class":storage_class,"create_time": create_time}
