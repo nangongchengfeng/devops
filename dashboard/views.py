@@ -95,18 +95,17 @@ def namespace_api(request):
     :param request:
     :return:
     """
+    # 获取认证类型
+    auth_type = request.session.get('auth_type', None)
+    # 获取认证信息
+    token = request.session.get('token', None)
+    # 调用k8s.load_auth_config()方法
+    k8s.load_auth_config(auth_type, token)
 
+    # 获取namespace列表 对象实例化
+    core_api = client.CoreV1Api()
     if request.method == 'GET':
 
-        # 获取认证类型
-        auth_type = request.session.get('auth_type', None)
-        # 获取认证信息
-        token = request.session.get('token', None)
-        # 调用k8s.load_auth_config()方法
-        k8s.load_auth_config(auth_type, token)
-
-        # 获取namespace列表 对象实例化
-        core_api = client.CoreV1Api()
         search_key = request.GET.get('search_key', None)
         data = []
         try:
@@ -158,7 +157,36 @@ def namespace_api(request):
         # 返回namespace列表
         log.info("获取namespace列表 %s" % res)
         return JsonResponse(res)
+    elif request.method == "POST":
+        name = request.POST['name']
 
+        # 判断命名空间是否存在
+        for ns in core_api.list_namespace().items:
+            if name == ns.metadata.name:
+                res = {'code': 1, "msg": "命名空间已经存在！"}
+                return JsonResponse(res)
+
+        body = client.V1Namespace(
+            api_version="v1",
+            kind="Namespace",
+            metadata=client.V1ObjectMeta(
+                name=name
+            )
+        )
+        try:
+            core_api.create_namespace(body=body)
+            code = 0
+            msg = "创建命名空间成功."
+        except Exception as e:
+            code = 1
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "没有访问权限！"
+            else:
+                msg = "创建失败！"
+        res = {'code': code, 'msg': msg}
+        log.info("创建命名空间 %s" % res)
+        return JsonResponse(res)
 
     elif request.method == "DELETE":
         """
@@ -167,10 +195,6 @@ def namespace_api(request):
         request_data = QueryDict(request.body)
         log.info("删除namespace %s" % request_data)
         name = request_data.get("name")
-        auth_type = request.session.get("auth_type")
-        token = request.session.get("token")
-        k8s.load_auth_config(auth_type, token)
-        core_api = client.CoreV1Api()
         try:
             core_api.delete_namespace(name)
             code = 0
