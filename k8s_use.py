@@ -236,4 +236,8 @@ def svc_update():
 
 
 if __name__ == '__main__':
-    deploy_delete()
+    # 查询所有的deployment
+    apps_api = client.AppsV1Api()  # 资源接口类实例化
+    data=apps_api.list_deployment_for_all_namespaces().items
+    for name in data:
+        print(name.metadata.name)

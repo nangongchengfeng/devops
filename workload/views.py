@@ -177,3 +177,94 @@ def daemonset_api(request):
         res = {'code': code, 'msg': msg}
         log.info("删除daemonset数据操作,返回数据为: %s" % res)
         return JsonResponse(res)
+
+
+# statefulset 服务
+def statefulset(request):
+    return render(request, 'workload/statefulset.html')
+
+
+def statefulset_api(request):
+    code = 0
+    msg = ""
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    apps_api = client.AppsV1Api()
+    if request.method == "GET":
+        search_key = request.GET.get("search_key")
+        namespace = request.GET.get("namespace")
+        data = []
+        try:
+            for sts in apps_api.list_namespaced_stateful_set(namespace).items:
+                name = sts.metadata.name
+                namespace = sts.metadata.namespace
+                labels = sts.metadata.labels
+                selector = sts.spec.selector.match_labels
+                replicas = sts.spec.replicas
+                ready_replicas = ("0" if sts.status.ready_replicas is None else sts.status.ready_replicas)
+                # current_replicas = sts.status.current_replicas
+                service_name = sts.spec.service_name
+                containers = {}
+                for c in sts.spec.template.spec.containers:
+                    containers[c.name] = c.image
+                create_time = sts.metadata.creation_timestamp
+
+                sts = {"name": name, "namespace": namespace, "labels": labels, "replicas": replicas,
+                       "ready_replicas": ready_replicas, "service_name": service_name,
+                       "selector": selector, "containers": containers, "create_time": create_time}
+
+                # 根据搜索值返回数据
+                if search_key:
+                    if search_key in name:
+                        data.append(sts)
+                else:
+                    data.append(sts)
+                code = 0
+                msg = "获取数据成功"
+        except Exception as e:
+            code = 1
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "没有访问权限"
+            else:
+                msg = "获取数据失败"
+        count = len(data)
+
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit'))
+        start = (page - 1) * limit
+        end = page * limit
+        data = data[start:end]
+
+        res = {'code': code, 'msg': msg, 'count': count, 'data': data}
+        log.info("获取statefulset数据操作,返回数据为: %s" % res)
+        return JsonResponse(res)
+
+    elif request.method == "DELETE":
+        request_data = QueryDict(request.body)
+        name = request_data.get("name")
+        namespace = request_data.get("namespace")
+        try:
+            apps_api.delete_namespaced_stateful_set(namespace=namespace, name=name)
+            code = 0
+            msg = "删除成功."
+        except Exception as e:
+            code = 1
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "没有删除权限"
+            else:
+                msg = "删除失败！"
+        res = {'code': code, 'msg': msg}
+        log.info("删除statefulset数据操作,返回数据为: %s" % res)
+        return JsonResponse(res)
+
+
+# pod 服务
+def pod(request):
+    return render(request, 'workload/pod.html')
+
+
+def pod_api(request):
+    return None
