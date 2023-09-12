@@ -74,7 +74,7 @@ def deployment_api(request):
         data = data[start:end]
 
         res = {'code': code, 'msg': msg, 'count': count, 'data': data}
-        log.info("获取deployment数据成功,返回数据为: %s" % res)
+        log.info("获取deployment数据操作,返回数据为: %s" % res)
         return JsonResponse(res)
     elif request.method == "DELETE":
         request_data = QueryDict(request.body)
@@ -96,5 +96,84 @@ def deployment_api(request):
             else:
                 msg = "删除失败！"
         res = {'code': code, 'msg': msg}
-        log.info("删除deployment数据成功,返回数据为: %s" % res)
+        log.info("删除deployment数据操作,返回数据为: %s" % res)
+        return JsonResponse(res)
+
+
+def daemonset(request):
+    return render(request, 'workload/daemonset.html')
+
+
+def daemonset_api(request):
+    code = 0
+    msg = ""
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    apps_api = client.AppsV1Api()
+    if request.method == "GET":
+        search_key = request.GET.get("search_key")
+        namespace = request.GET.get("namespace")
+        data = []
+        try:
+            for ds in apps_api.list_namespaced_daemon_set(namespace).items:
+                name = ds.metadata.name
+                namespace = ds.metadata.namespace
+                desired_number = ds.status.desired_number_scheduled
+                available_number = ds.status.number_available
+                labels = ds.metadata.labels
+                selector = ds.spec.selector.match_labels
+                containers = {}
+                for c in ds.spec.template.spec.containers:
+                    containers[c.name] = c.image
+                create_time = ds.metadata.creation_timestamp
+
+                ds = {"name": name, "namespace": namespace, "labels": labels, "desired_number": desired_number,
+                      "available_number": available_number,
+                      "selector": selector, "containers": containers, "create_time": create_time}
+
+                # 根据搜索值返回数据
+                if search_key:
+                    if search_key in name:
+                        data.append(ds)
+                else:
+                    data.append(ds)
+                code = 0
+                msg = "获取数据成功"
+        except Exception as e:
+            code = 1
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "没有访问权限"
+            else:
+                msg = "获取数据失败"
+        count = len(data)
+
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit'))
+        start = (page - 1) * limit
+        end = page * limit
+        data = data[start:end]
+
+        res = {'code': code, 'msg': msg, 'count': count, 'data': data}
+        log.info("获取daemonset数据操作,返回数据为: %s" % res)
+        return JsonResponse(res)
+
+    elif request.method == "DELETE":
+        request_data = QueryDict(request.body)
+        name = request_data.get("name")
+        namespace = request_data.get("namespace")
+        try:
+            apps_api.delete_namespaced_daemon_set(namespace=namespace, name=name)
+            code = 0
+            msg = "删除成功."
+        except Exception as e:
+            code = 1
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "没有删除权限"
+            else:
+                msg = "删除失败！"
+        res = {'code': code, 'msg': msg}
+        log.info("删除daemonset数据操作,返回数据为: %s" % res)
         return JsonResponse(res)
