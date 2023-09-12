@@ -267,4 +267,99 @@ def pod(request):
 
 
 def pod_api(request):
-    return None
+    code = 0
+    msg = ""
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    core_api = client.CoreV1Api()
+    if request.method == "GET":
+        search_key = request.GET.get("search_key")
+        namespace = request.GET.get("namespace")
+        data = []
+        try:
+            for po in core_api.list_namespaced_pod(namespace).items:
+                name = po.metadata.name
+                namespace = po.metadata.namespace
+                labels = po.metadata.labels
+                pod_ip = po.status.pod_ip
+
+                containers = []  # [{},{},{}]
+                status = "None"
+                # 只为None说明Pod没有创建（不能调度或者正在下载镜像）
+                if po.status.container_statuses is None:
+                    status = po.status.conditions[-1].reason
+                else:
+                    for c in po.status.container_statuses:
+                        c_name = c.name
+                        c_image = c.image
+
+                        # 获取重启次数
+                        restart_count = c.restart_count
+
+                        # 获取容器状态
+                        c_status = "None"
+                        if c.ready is True:
+                            c_status = "Running"
+                        elif c.ready is False:
+                            if c.state.waiting is not None:
+                                c_status = c.state.waiting.reason
+                            elif c.state.terminated is not None:
+                                c_status = c.state.terminated.reason
+                            elif c.state.last_state.terminated is not None:
+                                c_status = c.last_state.terminated.reason
+
+                        c = {'c_name': c_name, 'c_image': c_image, 'restart_count': restart_count, 'c_status': c_status}
+                        containers.append(c)
+
+                create_time = po.metadata.creation_timestamp
+
+                po = {"name": name, "namespace": namespace, "pod_ip": pod_ip,
+                      "labels": labels, "containers": containers, "status": status,
+                      "create_time": create_time}
+
+                # 根据搜索值返回数据
+                if search_key:
+                    if search_key in name:
+                        data.append(po)
+                else:
+                    data.append(po)
+                code = 0
+                msg = "获取数据成功"
+        except Exception as e:
+            code = 1
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "没有访问权限"
+            else:
+                msg = "获取数据失败"
+        count = len(data)
+
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit'))
+        start = (page - 1) * limit
+        end = page * limit
+        data = data[start:end]
+
+        res = {'code': code, 'msg': msg, 'count': count, 'data': data}
+        log.info("获取pod数据操作,返回数据为: %s" % res)
+        return JsonResponse(res)
+
+    elif request.method == "DELETE":
+        request_data = QueryDict(request.body)
+        name = request_data.get("name")
+        namespace = request_data.get("namespace")
+        try:
+            core_api.delete_namespaced_pod(namespace=namespace, name=name)
+            code = 0
+            msg = "删除成功."
+        except Exception as e:
+            code = 1
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "没有删除权限"
+            else:
+                msg = "删除失败！"
+        res = {'code': code, 'msg': msg}
+        log.info("删除pod数据操作,返回数据为: %s" % res)
+        return JsonResponse(res)

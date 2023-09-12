@@ -55,36 +55,44 @@
                     <a href="javascript:;">Kubernetes</a>
                     <dl class="layui-nav-child">
                         <dd><a href="{% url 'node' %}" class="{% block nav-this-1-1 %}{% endblock %}">Nodes</a></dd>
-                        <dd><a href="{% url 'namespace' %}" class="{% block nav-this-1-2 %}{% endblock %}">Namespaces</a></dd>
-                        <dd><a href="{% url 'pv' %}" class="{% block nav-this-1-3 %}{% endblock %}">PersistentVolumes</a></dd>
+                        <dd><a href="{% url 'namespace' %}"
+                               class="{% block nav-this-1-2 %}{% endblock %}">Namespaces</a></dd>
+                        <dd><a href="{% url 'pv' %}"
+                               class="{% block nav-this-1-3 %}{% endblock %}">PersistentVolumes</a></dd>
                     </dl>
                 </li>
                 <!-- 模块三 -->
                 <li class="layui-nav-item {% block nav-item-2 %}{% endblock %}">
                     <a href="javascript:;">工作负载</a>
                     <dl class="layui-nav-child">
-                        <dd><a href="{% url 'deployment' %}" class="{% block nav-this-2-1 %}{% endblock %}">Deployments</a></dd>
-                        <dd><a href="{% url 'daemonset' %}">DaemonSets</a></dd>
-                        <dd><a href="{% url 'statefulset' %}">StatefulSets</a></dd>
-                        <dd><a href="javascript:;">Pods</a></dd>
+                        <dd><a href="{% url 'deployment' %}"
+                               class="{% block nav-this-2-1 %}{% endblock %}">Deployments</a></dd>
+                        <dd><a href="{% url 'daemonset' %}"
+                               class="{% block nav-this-2-2 %}{% endblock %}">DaemonSets</a></dd>
+                        <dd><a href="{% url 'statefulset' %}"
+                               class="{% block nav-this-2-3 %}{% endblock %}">SatefulSets</a></dd>
+                        <dd><a href="{% url 'pod' %}" class="{% block nav-this-2-4 %}{% endblock %}">Pods</a></dd>
                     </dl>
                 </li>
                 <!-- 模块四 -->
                 <li class="layui-nav-item">
                     <a href="javascript:;">负载均衡</a>
                     <dl class="layui-nav-child">
-                        <dd><a href="javascript:;">Services</a></dd>
-                        <dd><a href="javascript:;">Ingresses</a></dd>
-                        <dd><a href="javascript:;">StatefulSets</a></dd>
+                        <dd><a href="{% url 'service' %}" class="{% block nav-this-3-1 %}{% endblock %}">Services</a>
+                        </dd>
+                        <dd><a href="{% url 'ingress' %}" class="{% block nav-this-3-2 %}{% endblock %}">Ingresses</a>
+                        </dd>
                     </dl>
                 </li>
                 <!-- 模块五 -->
                 <li class="layui-nav-item">
                     <a href="javascript:;">存储与配置</a>
                     <dl class="layui-nav-child">
-                        <dd><a href="javascript:;">PersistentVolumeClaims</a></dd>
-                        <dd><a href="javascript:;">ConfigMaps</a></dd>
-                        <dd><a href="javascript:;">Secrets</a></dd>
+                        <dd><a href="{% url 'pvc' %}" class="{% block nav-this-4-1 %}{% endblock %}">PersistentVolumeClaims</a>
+                        </dd>
+                        <dd><a href="{% url 'configmap' %}"
+                               class="{% block nav-this-4-2 %}{% endblock %}">ConfigMaps</a></dd>
+                        <dd><a href="{% url 'secret' %}" class="{% block nav-this-4-3 %}{% endblock %}">Secrets</a></dd>
                     </dl>
                 </li>
             </ul>
@@ -100,7 +108,7 @@
 
     <div class="layui-footer">
         <!-- 底部固定区域 -->
-        © www.ctnrs.com
+        © ownit.top - 2023
     </div>
 </div>
 <script src="/static/layui/layui.js"></script>
