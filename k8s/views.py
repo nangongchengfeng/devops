@@ -97,23 +97,19 @@ def node_api(request):
         return JsonResponse(res)
 
 
-
-
-
 def pv(request):
     return render(request, 'k8s/pv.html')
 
 
-
 def pv_api(request):
     # 命名空间选择和命名空间表格使用
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    core_api = client.CoreV1Api()
     if request.method == "GET":
         code = 0
         msg = ""
-        auth_type = request.session.get("auth_type")
-        token = request.session.get("token")
-        k8s.load_auth_config(auth_type, token)
-        core_api = client.CoreV1Api()
         search_key = request.GET.get("search_key")
         data = []
         try:
@@ -131,9 +127,9 @@ def pv_api(request):
                     pvc = "未绑定"
                 storage_class = pv.spec.storage_class_name
                 create_time = k8s.dt_format(pv.metadata.creation_timestamp)
-                pv = {"name": name, "capacity": capacity, "access_modes":access_modes,
-                             "reclaim_policy":reclaim_policy , "status":status, "pvc":pvc,
-                            "storage_class":storage_class,"create_time": create_time}
+                pv = {"name": name, "capacity": capacity, "access_modes": access_modes,
+                      "reclaim_policy": reclaim_policy, "status": status, "pvc": pvc,
+                      "storage_class": storage_class, "create_time": create_time}
                 # 根据搜索值返回数据
                 if search_key:
                     if search_key in name:
@@ -152,7 +148,7 @@ def pv_api(request):
         count = len(data)
 
         # 分页
-        page = int(request.GET.get('page',1))
+        page = int(request.GET.get('page', 1))
         limit = int(request.GET.get('limit'))
         start = (page - 1) * limit
         end = page * limit
@@ -161,14 +157,45 @@ def pv_api(request):
         res = {'code': code, 'msg': msg, 'count': count, 'data': data}
         log.info("获取pv列表 %s" % res)
         return JsonResponse(res)
-
+    elif request.method == "POST":
+        name = request.POST.get("name", None)
+        capacity = request.POST.get("capacity", None)
+        access_mode = request.POST.get("access_mode", None)
+        storage_type = request.POST.get("storage_type", None)
+        server_ip = request.POST.get("server_ip", None)
+        mount_path = request.POST.get("mount_path", None)
+        body = client.V1PersistentVolume(
+            api_version="v1",
+            kind="PersistentVolume",
+            metadata=client.V1ObjectMeta(name=name),
+            spec=client.V1PersistentVolumeSpec(
+                capacity={'storage': capacity},
+                access_modes=[access_mode],
+                nfs=client.V1NFSVolumeSource(
+                    server=server_ip,
+                    path="/ifs/kubernetes/%s" % mount_path
+                )
+            )
+        )
+        try:
+            core_api.create_persistent_volume(body=body)
+            code = 0
+            msg = "创建成功."
+        except Exception as e:
+            print(e)
+            code = 1
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "没有访问权限！"
+            else:
+                msg = "创建失败！"
+        res = {'code': code, 'msg': msg}
+        log.info("创建pv操作 %s" % res)
+        return JsonResponse(res)
     elif request.method == "DELETE":
         request_data = QueryDict(request.body)
         name = request_data.get("name")
-        auth_type = request.session.get("auth_type")
-        token = request.session.get("token")
-        k8s.load_auth_config(auth_type, token)
-        core_api = client.CoreV1Api()
+
         try:
             core_api.delete_persistent_volume(name)
             code = 0
@@ -183,3 +210,7 @@ def pv_api(request):
         res = {'code': code, 'msg': msg}
         log.info("删除pv %s" % res)
         return JsonResponse(res)
+
+
+def pv_create(request):
+    return render(request, 'k8s/pv_create.html')
