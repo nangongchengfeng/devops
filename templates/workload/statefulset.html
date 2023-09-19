@@ -127,7 +127,15 @@ layui.use('table', function(){
 
       });
     } else if(obj.event === 'yaml'){
-
+                    // 获取当前命名空间
+                    var storage = window.sessionStorage;
+                    var namespace = storage.getItem("namespace");
+                    layer.open({
+                        title: "YAML",
+                        type: 2,
+                        content: "{% url 'ace_editor' %}?resource=statefulset&" + 'namespace=' + namespace + '&name=' + data['name'],
+                        area: ['50%', '60%'],
+                    });
     }
   });
     // 监听搜索按钮事件
