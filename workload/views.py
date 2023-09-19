@@ -76,6 +76,51 @@ def deployment_api(request):
         res = {'code': code, 'msg': msg, 'count': count, 'data': data}
         log.info("获取deployment数据操作,返回数据为: %s" % res)
         return JsonResponse(res)
+    elif request.method == "PUT":
+        auth_type = request.session.get("auth_type")
+        token = request.session.get("token")
+        k8s.load_auth_config(auth_type, token)
+        apps_api = client.AppsV1Api()
+        request_data = QueryDict(request.body)
+        name = request_data.get("name")
+        namespace = request_data.get("namespace")
+        replicas = int(request_data.get("replicas"))
+        try:
+            body = apps_api.read_namespaced_deployment(name=name, namespace=namespace)
+            current_replicas = body.spec.replicas
+            min_replicas = 0
+            max_replicas = 20
+            if replicas > current_replicas and replicas < max_replicas:
+                # body = body.spec.template.spec.containers[0].image = "nginx:1.17"
+                body.spec.replicas = replicas  # 更新对象内副本值
+                apps_api.patch_namespaced_deployment(name=name, namespace=namespace, body=body)
+                msg = "扩容成功！"
+                code = 0
+            elif replicas < current_replicas and replicas > min_replicas:
+                body.spec.replicas = replicas
+                apps_api.patch_namespaced_deployment(name=name, namespace=namespace, body=body)
+                msg = "缩容成功！"
+                code = 0
+            elif replicas == current_replicas:
+                msg = "副本数一致！"
+                code = 1
+            elif replicas > max_replicas:
+                msg = "副本数设置过大！请联系管理员操作。"
+                code = 1
+            elif replicas == min_replicas:
+                msg = "副本数不能设置0！"
+                code = 1
+        except Exception as e:
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "你没有扩容/缩容权限！"
+            else:
+                msg = "扩容/缩容失败！"
+            code = 1
+        res = {"code": code, "msg": msg}
+        log.info("扩容/缩容deployment数据操作,返回数据为: %s" % res)
+        return JsonResponse(res)
+
     elif request.method == "DELETE":
         request_data = QueryDict(request.body)
         name = request_data.get("name")
