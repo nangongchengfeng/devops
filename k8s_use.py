@@ -4,6 +4,31 @@
 # @Email   : 1794748404@qq.com
 # @File    : k8s_use.py
 # @Software: PyCharm
+"""
+*                        _oo0oo_
+ *                       o8888888o
+ *                       88" . "88
+ *                       (| -_- |)
+ *                       0\  =  /0
+ *                     ___/`---'\___
+ *                   .' \\|     |// '.
+ *                  / \\|||  :  |||// \
+ *                 / _||||| -:- |||||- \
+ *                |   | \\\  - /// |   |
+ *                | \_|  ''\---/''  |_/ |
+ *                \  .-\__  '-'  ___/-. /
+ *              ___'. .'  /--.--\  `. .'___
+ *           ."" '<  `.___\_<|>_/___.' >' "".
+ *          | | :  `- \`.;`\ _ /`;.`/ - ` : | |
+ *          \  \ `_.   \_ __\ /__ _/   .-` /  /
+ *      =====`-.____`.___ \_____/___.-`___.-'=====
+ *                        `=---='
+ *
+ *
+ *      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *            佛祖保佑       永不宕机     永无BUG
+"""
 
 import os
 from kubernetes import client, config
@@ -16,6 +41,8 @@ apps_api = client.AppsV1Api()  # 资源接口类实例化
 core_api = client.CoreV1Api()  # namespace,pod,service,pv,pvc
 networking_api = client.NetworkingV1Api()  # ingress
 storage_api = client.StorageV1Api()  # storage_class
+
+
 # for dp in apps_api.list_deployment_for_all_namespaces().items:
 #     print(dp)
 
@@ -78,7 +105,6 @@ def deploy_create():
             print("格式错误")
         elif status == 403:
             print("没权限")
-
 
 
 # 更新一个deployment
@@ -146,7 +172,6 @@ def svc_get():
         print(svc.metadata.name)
 
 
-
 def svc_delete():
     """
     删除一个service
@@ -165,6 +190,7 @@ def svc_delete():
             print("没权限")
         elif status == 409:
             print("冲突")
+
 
 def svc_create():
     """
@@ -202,6 +228,7 @@ def svc_create():
         elif status == 403:
             print("没权限")
 
+
 def svc_update():
     """
     更新一个service
@@ -238,6 +265,6 @@ def svc_update():
 if __name__ == '__main__':
     # 查询所有的deployment
     apps_api = client.AppsV1Api()  # 资源接口类实例化
-    data=apps_api.list_deployment_for_all_namespaces().items
+    data = apps_api.list_deployment_for_all_namespaces().items
     for name in data:
         print(name.metadata.name)
