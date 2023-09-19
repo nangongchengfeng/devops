@@ -214,3 +214,158 @@ def namespace_api(request):
 
 def namespace(request):
     return render(request, 'k8s/namespace.html')
+
+
+def export_resource_api(request):
+    """
+    获取资源的yaml文件
+    :param request:
+    :return:
+    """
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    # 实例化对象
+    core_api = client.CoreV1Api()  # namespace,pod,service,pv,pvc
+    apps_api = client.AppsV1Api()  # deployment
+    networking_api = client.NetworkingV1Api()  # ingress
+    storage_api = client.StorageV1Api()  # storage_class
+
+    namespace = request.GET.get('namespace', None)
+    resource = request.GET.get('resource', None)
+    name = request.GET.get('name', None)
+    code = 0
+    msg = ""
+    result = ""
+
+    # 导入类
+    import yaml, json
+    if resource == "namespace":
+        try:
+            # 坑，不要写py测试，print会二次处理影响结果，到时测试不通
+            result = core_api.read_namespace(name=name, _preload_content=False).read()
+            result = str(result, "utf-8")  # bytes转字符串
+            result = yaml.safe_dump(json.loads(result))  # str/dict -> json -> yaml
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "deployment":
+        try:
+            result = apps_api.read_namespaced_deployment(name=name, namespace=namespace, _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "replicaset":
+        try:
+            result = apps_api.read_namespaced_replica_set(name=name, namespace=namespace, _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "daemonset":
+        try:
+            result = apps_api.read_namespaced_daemon_set(name=name, namespace=namespace, _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "statefulset":
+        try:
+            result = apps_api.read_namespaced_stateful_set(name=name, namespace=namespace,
+                                                           _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "pod":
+        try:
+            result = core_api.read_namespaced_pod(name=name, namespace=namespace, _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "service":
+        try:
+            result = core_api.read_namespaced_service(name=name, namespace=namespace, _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "ingress":
+        try:
+            result = networking_api.read_namespaced_ingress(name=name, namespace=namespace,
+                                                            _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "pvc":
+        try:
+            result = core_api.read_namespaced_persistent_volume_claim(name=name, namespace=namespace,
+                                                                      _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "pv":
+        try:
+            result = core_api.read_persistent_volume(name=name, _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "node":
+        try:
+            result = core_api.read_node(name=name, _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "configmap":
+        try:
+            result = core_api.read_namespaced_config_map(name=name, namespace=namespace, _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+    elif resource == "secret":
+        try:
+            result = core_api.read_namespaced_secret(name=name, namespace=namespace, _preload_content=False).read()
+            result = str(result, "utf-8")
+            result = yaml.safe_dump(json.loads(result))
+        except Exception as e:
+            code = 1
+            msg = e
+
+    res = {"code": code, "msg": msg, "data": result}
+    log.info("获取资源的yaml文件 %s" % res)
+    return JsonResponse(res)
+
+
+# Refused to display 'http://127.0.0.1:8080/ace_editor' in a frame because it set 'X-Frame-Options' to 'deny'.
+from django.views.decorators.clickjacking import xframe_options_exempt
+
+
+@xframe_options_exempt
+def ace_editor(request):
+    d = {}
+    namespace = request.GET.get('namespace', None)
+    resource = request.GET.get('resource', None)
+    name = request.GET.get('name', None)
+    d['namespace'] = namespace
+    d['resource'] = resource
+    d['name'] = name
+    log.info("ace_editor %s" % d)
+    return render(request, 'ace_editor.html', {'data': d})

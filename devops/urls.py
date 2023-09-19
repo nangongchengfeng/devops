@@ -26,6 +26,8 @@ urlpatterns = [
     re_path('^logout/$', views.logout),
     re_path('^namespace/$', views.namespace, name='namespace'),
     re_path('^namespace_api/$', views.namespace_api, name='namespace_api'),
+    re_path('^export_resource_api/$', views.export_resource_api, name="export_resource_api"),
+    re_path('^ace_editor/$', views.ace_editor, name="ace_editor"),
     re_path('^kubernetes/', include('k8s.urls')),
     re_path('^workload/', include('workload.urls')),
     re_path('^storage/', include('storage.urls')),
