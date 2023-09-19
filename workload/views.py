@@ -499,3 +499,167 @@ def pod_api(request):
 
 def deployment_create(request):
     return render(request, 'workload/deployment_create.html')
+
+
+def deployment_details(request):
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    core_api = client.CoreV1Api()
+    apps_api = client.AppsV1Api()
+    networking_api = client.NetworkingV1Api()
+
+    dp_name = request.GET.get("name")
+    namespace = request.GET.get("namespace")
+
+    dp_info = []
+    for dp in apps_api.list_namespaced_deployment(namespace=namespace).items:
+        if dp_name == dp.metadata.name:
+            name = dp.metadata.name
+            namespace = dp.metadata.namespace
+            replicas = dp.spec.replicas
+            available_replicas = (
+                0 if dp.status.available_replicas is None else dp.status.available_replicas)  # ready_replicas
+            labels = dp.metadata.labels
+            selector = dp.spec.selector.match_labels
+
+            # 通过deployment反查对应service
+            service = []
+            svc_name = None
+            for svc in core_api.list_namespaced_service(namespace=namespace).items:
+                if svc.spec.selector == selector:
+                    svc_name = svc.metadata.name  # 通过该名称筛选ingress
+
+                    type = svc.spec.type
+                    cluster_ip = svc.spec.cluster_ip
+                    ports = svc.spec.ports
+
+                    data = {"type": type, "cluster_ip": cluster_ip, "ports": ports}
+                    service.append(data)
+
+            # service没有创建，ingress也就没有  ingress->service->deployment->pod
+            ingress = {"rules": None, "tls": None}
+            for ing in networking_api.list_namespaced_ingress(namespace=namespace).items:
+                for r in ing.spec.rules:
+                    for b in r.http.paths:
+                        if b.backend.service.name == svc_name:
+                            ingress["rules"] = ing.spec.rules
+                            ingress["tls"] = ing.spec.tls
+
+            containers = []
+            for c in dp.spec.template.spec.containers:
+                c_name = c.name
+                image = c.image
+                liveness_probe = c.liveness_probe
+                readiness_probe = c.readiness_probe
+                resources = c.resources  # 在前端处理
+                env = c.env
+                ports = c.ports
+                volume_mounts = c.volume_mounts
+                args = c.args
+                command = c.command
+
+                container = {"name": c_name, "image": image, "liveness_probe": liveness_probe,
+                             "readiness_probe": readiness_probe,
+                             "resources": resources, "env": env, "ports": ports,
+                             "volume_mounts": volume_mounts, "args": args, "command": command}
+                containers.append(container)
+
+            tolerations = dp.spec.template.spec.tolerations
+            rolling_update = dp.spec.strategy.rolling_update
+            volumes = []
+            if dp.spec.template.spec.volumes is not None:
+                for v in dp.spec.template.spec.volumes:
+                    volume = {}
+                    if v.config_map is not None:
+                        volume["config_map"] = v.config_map
+                    elif v.secret is not None:
+                        volume["secret"] = v.secret
+                    elif v.empty_dir is not None:
+                        volume["empty_dir"] = v.empty_dir
+                    elif v.host_path is not None:
+                        volume["host_path"] = v.host_path
+                    elif v.config_map is not None:
+                        volume["downward_api"] = v.downward_api
+                    elif v.config_map is not None:
+                        volume["glusterfs"] = v.glusterfs
+                    elif v.cephfs is not None:
+                        volume["cephfs"] = v.cephfs
+                    elif v.rbd is not None:
+                        volume["rbd"] = v.rbd
+                    elif v.persistent_volume_claim is not None:
+                        volume["persistent_volume_claim"] = v.persistent_volume_claim
+                    else:
+                        volume["unknown"] = "unknown"
+                    volumes.append(volume)
+
+            rs_number = dp.spec.revision_history_limit
+            create_time = k8s.dt_format(dp.metadata.creation_timestamp)
+
+            dp_info = {"name": name, "namespace": namespace, "replicas": replicas,
+                       "available_replicas": available_replicas, "labels": labels,
+                       "selector": selector, "containers": containers, "rs_number": rs_number,
+                       "rolling_update": rolling_update, "create_time": create_time, "volumes": volumes,
+                       "tolerations": tolerations, "service": service, "ingress": ingress}
+    return render(request, 'workload/deployment_details.html',
+                  {'dp_name': dp_name, 'namespace': namespace, 'dp_info': dp_info})
+
+
+def replicaset_api(request):
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    apps_api = client.AppsV1Api()
+    apps_beta_api = client.V1ReplicaSet();
+
+    if request.method == "GET":
+        dp_name = request.GET.get("name", None)
+        namespace = request.GET.get("namespace", None)
+
+        data = []
+        for rs in apps_api.list_namespaced_replica_set(namespace=namespace).items:
+            # deployment 的名称
+            current_dp_name = rs.metadata.owner_references[0].name
+            # pod 的名称
+            rs_name = rs.metadata.name
+            if dp_name == current_dp_name:
+                namespace = rs.metadata.namespace
+                replicas = rs.status.replicas
+                available_replicas = rs.status.available_replicas
+                ready_replicas = rs.status.ready_replicas
+                revision = rs.metadata.annotations["deployment.kubernetes.io/revision"]
+                create_time = k8s.dt_format(rs.metadata.creation_timestamp)
+
+                containers = {}
+                for c in rs.spec.template.spec.containers:
+                    containers[c.name] = c.image
+
+                rs = {"name": rs_name, "namespace": namespace, "replicas": replicas,
+                      "available_replicas": available_replicas, "ready_replicas": ready_replicas,
+                      "revision": revision, 'containers': containers, "create_time": create_time}
+                data.append(rs)
+        count = len(data)  # 可选，rs默认保存10条，所以不用分页
+        res = {"code": 0, "msg": "", "count": count, 'data': data}
+        log.info("获取replicaset数据操作,返回数据为: %s" % res)
+        return JsonResponse(res)
+    elif request.method == "POST":
+        dp_name = request.POST.get("dp_name", None)  # deployment名称
+        namespace = request.POST.get("namespace", None)
+        reversion = request.POST.get("reversion", None)
+        body = {"name": dp_name, "rollback_to": {"revision": reversion}}
+        print(dp_name)
+        try:
+            apps_beta_api.create_namespaced_deployment_rollback(name=dp_name, namespace=namespace, body=body)
+            code = 0
+            msg = "回滚成功！"
+        except Exception as e:
+            print(e)
+            status = getattr(e, "status")
+            if status == 403:
+                msg = "你没有回滚权限！"
+            else:
+                msg = "回滚失败！"
+            code = 1
+        res = {"code": code, "msg": msg}
+        log.info("回滚replicaset数据操作,返回数据为: %s" % res)
+        return JsonResponse(res)

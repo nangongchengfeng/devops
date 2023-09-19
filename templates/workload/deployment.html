@@ -14,7 +14,7 @@
 
             <div class="layui-row">
                 <div class="layui-col-md12">
-                <a href="{% url 'deployment_create' %}" class="layui-btn" style="float: left">创建</a>
+                    <a href="{% url 'deployment_create' %}" class="layui-btn" style="float: left">创建</a>
                     <input type="text" name="name" class="layui-input"
                            style="width: 150px;float: left;margin-left: 20px">
                     <button class="layui-btn" style="float: left" id="searchBtn">搜索</button>
@@ -88,6 +88,7 @@
 
             //监听行工具事件
             table.on('tool(test)', function (obj) {
+
                 var data = obj.data;
                 //console.log(obj)
                 if (obj.event === 'del') {
@@ -114,6 +115,9 @@
                     });
                 } else if (obj.event === 'yaml') {
                     // 获取当前命名空间
+
+                    // 数据表格中的 obj 对象
+                    //console.log(obj)
                     var storage = window.sessionStorage;
                     var namespace = storage.getItem("namespace");
                     layer.open({
@@ -149,6 +153,9 @@
                         });
                         layer.close(index);  // 关闭弹窗
                     });
+                } else if (obj.event === 'details') {
+                    //console.log(data['namespace'], data['name'])
+                    window.location.href = "{% url "deployment_details" %}?namespace=" + data["namespace"] + "&name=" + data["name"]
                 }
             });
             // 监听搜索按钮事件
