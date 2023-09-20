@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>容器终端</title>
+    <link href="/static/xterm/xterm.css" rel="stylesheet" type="text/css"/>
+    <style>
+        body {
+            background-color: black
+        }
+
+        .terminal-window {
+            background-color: #2f4050;
+            width: 99%;
+            color: white;
+            line-height: 25px;
+            margin-bottom: 10px;
+            font-size: 18px;
+            padding: 10px 0 10px 10px
+        }
+
+        .containers select, .containers option {
+            width: 100px;
+            height: 25px;
+            font-size: 18px;
+            color: #2F4056;
+            text-overflow: ellipsis;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+<div class="terminal-window">
+    <div class="containers">
+        Pod名称：{{ connect.pod_name }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        容器：
+        <select name="container_name" id="containerSelect">
+            {% for c in connect.containers %}
+                <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+<div id="terminal" style="width: 100px;"></div>
+</body>
+
+<script src="/static/xterm/xterm.js"></script>
+
+<script>
+
+    var term = new Terminal({cursorBlink: true, rows: 70});
+    term.open(document.getElementById('terminal'));
+
+    var auth_type = '{{ connect.auth_type }}';
+    var token = '{{ connect.token }}';
+    var namespace = '{{ connect.namespace }}';
+    var pod_name = '{{ connect.pod_name }}';
+    var container = document.getElementById('containerSelect').value;
+
+    console.log(auth_type, token, namespace, pod_name, container);
+    // WebSocket构造函数，创建WebSocket对象
+    let ws = new WebSocket('ws://127.0.0.1:8000/ws/')
+
+    // 连接成功后的回调函数
+    ws.onopen = function (params) {
+        console.log('客户端连接成功')
+        // 向服务器发送消息
+        ws.send('hello')
+    };
+
+    // 从服务器接受到信息时的回调函数
+    ws.onmessage = function (e) {
+        console.log('收到服务器响应', e.data)
+    };
+
+    // 连接关闭后的回调函数
+    ws.onclose = function (evt) {
+        console.log("关闭客户端连接");
+    };
+
+    // 连接失败后的回调函数
+    ws.onerror = function (evt) {
+        console.log("连接失败了");
+    };
+
+
+    // 监听窗口关闭事件，当窗口关闭时，主动去关闭websocket连接，防止连接还没断开就关闭窗口，这样服务端会抛异常。
+    window.onbeforeunload = function () {
+        ws.close();
+    }
+
+</script>
+
+</html>

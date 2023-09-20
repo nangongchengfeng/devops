@@ -692,5 +692,21 @@ def pod_log(request):
             msg = "获取日志失败！"
         code = 1
         log_text = "获取日志失败！"
+    log.info("获取pod日志操作,返回数据为: %s" % log_text)
     res = {"code": code, "msg": msg, "data": log_text}
     return JsonResponse(res)
+
+
+from django.views.decorators.clickjacking import xframe_options_exempt
+@xframe_options_exempt
+def terminal(request):
+    namespace = request.GET.get("namespace")
+    pod_name = request.GET.get("pod_name")
+    containers = request.GET.get("containers").split(',')  # 返回 nginx1,nginx2，转成一个列表方便前端处理
+    auth_type = request.session.get(
+        'auth_type')  # 认证类型和token，用于传递到websocket，websocket根据sessionid获取token，让websocket处理连接k8s认证用
+    token = request.session.get('token')
+    connect = {'namespace': namespace, 'pod_name': pod_name, 'containers': containers, 'auth_type': auth_type,
+               'token': token}
+    log.info("获取terminal数据操作,返回数据为: %s" % connect)
+    return render(request, 'workload/terminal.html', {'connect': connect})
