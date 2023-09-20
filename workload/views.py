@@ -663,3 +663,34 @@ def replicaset_api(request):
         res = {"code": code, "msg": msg}
         log.info("回滚replicaset数据操作,返回数据为: %s" % res)
         return JsonResponse(res)
+
+
+def pod_log(request):
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    core_api = client.CoreV1Api()
+
+    name = request.POST.get("name", None)
+    namespace = request.POST.get("namespace", None)
+
+    # 目前没有对Pod多容器处理
+    try:
+        log_text = core_api.read_namespaced_pod_log(name=name, namespace=namespace, tail_lines=500)
+        if log_text:
+            code = 0
+            msg = "获取日志成功！"
+        elif len(log_text) == 0:
+            code = 0
+            msg = "没有日志！"
+            log_text = "没有日志！"
+    except Exception as e:
+        status = getattr(e, "status")
+        if status == 403:
+            msg = "你没有查看日志权限！"
+        else:
+            msg = "获取日志失败！"
+        code = 1
+        log_text = "获取日志失败！"
+    res = {"code": code, "msg": msg, "data": log_text}
+    return JsonResponse(res)

@@ -21,4 +21,5 @@ urlpatterns = [
     re_path('^statefulset_api/$', views.statefulset_api, name='statefulset_api'),
     re_path('^pod/$', views.pod, name='pod'),
     re_path('^pod_api/$', views.pod_api, name='pod_api'),
+    re_path('^pod_log/$', views.pod_log, name='pod_log'),
 ]
