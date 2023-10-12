@@ -5,6 +5,8 @@ import random
 from django.http import JsonResponse, QueryDict
 from django.shortcuts import render, redirect
 from kubernetes import client, config
+
+from dashboard import node_data
 from devops import k8s
 from utils.LogHandler import log
 
@@ -16,8 +18,50 @@ def index(request):
     :param request:
     :return:
     """
-    return render(request, 'index.html')
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    core_api = client.CoreV1Api()
 
+    # echart图表：通过ajax动态渲染/dashboard/node_resource接口获取
+    # 工作负载：访问每个资源的接口，获取count值ajax动态渲染
+
+    # 节点状态
+    n_r = node_data.node_resouces(core_api)
+
+    # 存储资源
+    pv_list = []
+    for pv in core_api.list_persistent_volume().items:
+        pv_name = pv.metadata.name
+        capacity = pv.spec.capacity["storage"]  # 返回字典对象
+        access_modes = pv.spec.access_modes
+        reclaim_policy = pv.spec.persistent_volume_reclaim_policy
+        status = pv.status.phase
+        if pv.spec.claim_ref is not None:
+            pvc_ns = pv.spec.claim_ref.namespace
+            pvc_name = pv.spec.claim_ref.name
+            claim = "%s/%s" %(pvc_ns,pvc_name)
+        else:
+            claim = "未关联PVC"
+        storage_class = pv.spec.storage_class_name
+        create_time = k8s.dt_format(pv.metadata.creation_timestamp)
+
+        data = {"pv_name": pv_name, "capacity": capacity, "access_modes": access_modes,
+                "reclaim_policy": reclaim_policy, "status": status,
+                "claim": claim,"storage_class": storage_class,"create_time": create_time}
+        pv_list.append(data)
+
+    return render(request, 'index.html', {"node_resouces": n_r, "pv_list": pv_list})
+
+# 仪表盘计算资源，为了方便ajax GET准备的接口
+def node_resource(request):
+    auth_type = request.session.get("auth_type")
+    token = request.session.get("token")
+    k8s.load_auth_config(auth_type, token)
+    core_api = client.CoreV1Api()
+
+    res = node_data.node_resouces(core_api)
+    return  JsonResponse(res)
 
 def login(request):
     """
