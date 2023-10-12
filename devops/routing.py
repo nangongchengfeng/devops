@@ -5,5 +5,9 @@ from django.urls import re_path
 from devops.consumers import StreamConsumer
 
 application = ProtocolTypeRouter({
-
+    'websocket': AuthMiddlewareStack(
+        URLRouter([
+            re_path(r'^workload/terminal/(?P<namespace>.*)/(?P<pod_name>.*)/(?P<container>.*)/', StreamConsumer),
+        ])
+    ),
 })

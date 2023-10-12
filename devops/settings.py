@@ -39,12 +39,13 @@ INSTALLED_APPS = [
     'channels_redis',
 ]
 # 指定ASGI的路由地址
-ASGI_APPLICATION = 'devops.asgi.application'
+ASGI_APPLICATION = 'devops.routing.application'
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": ["redis://:heian@192.168.82.105:6379/2"],
+            "hosts": [('192.168.102.20', 6379)],
         },
     },
 }

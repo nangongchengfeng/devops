@@ -358,8 +358,12 @@ def export_resource_api(request):
 from django.views.decorators.clickjacking import xframe_options_exempt
 
 
+# 添加中文注释
 @xframe_options_exempt
 def ace_editor(request):
+    '''
+    渲染ace编辑器
+    '''
     d = {}
     namespace = request.GET.get('namespace', None)
     resource = request.GET.get('resource', None)
